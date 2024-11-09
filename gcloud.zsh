@@ -1,3 +1,4 @@
+#!/bin/zsh
 setopt prompt_subst
 autoload -Uz add-zsh-hook
 
@@ -23,29 +24,34 @@ function _set_zsh_gcloud_prompt() {
 }
 
 function _is_gcloud_config_updated() {
-    local active_config config_default configurations
-    local active_config_now config_default_now configurations_now
-    local active_config_mtime config_default_mtime configurations_mtime mtime_fmt
+    local active_config config_default
+    local active_config_value active_configurations
+    local active_configurations_now
+    local active_configurations_mtime
+    local active_config_now config_default_now
+    local active_config_mtime config_default_mtime mtime_fmt
 
     # if one of these files is modified, assume gcloud configuration is updated
     active_config="$HOME/.config/gcloud/active_config"
     config_default="$HOME/.config/gcloud/configurations/config_default"
-    configurations="$HOME/.config/gcloud/configurations"
+
+    active_config_value="$(cat $active_config)"
+    active_configurations="$HOME/.config/gcloud/configurations/config_$active_config_value"
 
     zstyle -s ':zsh-gcloud-prompt:' mtime_fmt mtime_fmt
 
     active_config_now="$(stat $mtime_fmt $active_config 2>/dev/null)"
     config_default_now="$(stat $mtime_fmt $config_default 2>/dev/null)"
-    configurations_now="$(stat $mtime_fmt $configurations 2>/dev/null)"
+    active_configurations_now="$(stat $mtime_fmt $active_configurations 2>/dev/null)"
 
     zstyle -s ':zsh-gcloud-prompt:' active_config_mtime active_config_mtime
     zstyle -s ':zsh-gcloud-prompt:' config_default_mtime config_default_mtime
-    zstyle -s ':zsh-gcloud-prompt:' configurations_mtime configurations_mtime
+    zstyle -s ':zsh-gcloud-prompt:' active_configurations_mtime active_configurations_mtime
 
-    if [[ "$active_config_mtime" != "$active_config_now" || "$config_default_mtime" != "$config_default_now" || "$configurations_mtime" != "$configurations_now" ]]; then
+    if [[ "$active_config_mtime" != "$active_config_now" || "$config_default_mtime" != "$config_default_now" || "$active_configurations_mtime" != "$active_configurations_now" ]]; then
         zstyle ':zsh-gcloud-prompt:' active_config_mtime "$active_config_now"
         zstyle ':zsh-gcloud-prompt:' config_default_mtime "$config_default_now"
-        zstyle ':zsh-gcloud-prompt:' configurations_mtime "$configurations_now"
+        zstyle ':zsh-gcloud-prompt:' active_configurations_mtime "$active_configurations_now"
         return 0
     else
         return 1
